@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Regret Index</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="bgFX">
+  <div class="blob"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+</div>
+  <header class="wrap">
+    <div class="top">
+      <div>
+        <h1>Regret Index</h1>
+        <p class="sub">A searchable archive of human hindsight — updated live.</p>
+<div id="chips" class="chips"></div>
+      </div>
+      <div class="cta">
+        <a id="submitLink" class="btn" href="#" target="_blank" rel="noreferrer">Submit a regret</a>
+        <button id="randomBtn" class="btn secondary" type="button">Random</button>
+      </div>
+    </div>
+
+    <div class="filters card">
+      <div class="field">
+        <label>Search</label>
+        <input id="q" type="search" placeholder="risk, relationship, money, health..." />
+      </div>
+
+      <div class="field">
+        <label>Category</label>
+        <select id="category">
+          <option value="">All</option>
+          <option>Career</option>
+          <option>Love</option>
+          <option>Health</option>
+          <option>Money</option>
+          <option>Family</option>
+          <option>Friends</option>
+          <option>Self</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Age</label>
+        <div class="ageRow">
+          <input id="ageMin" type="number" min="0" placeholder="min" />
+          <span class="dash">—</span>
+          <input id="ageMax" type="number" min="0" placeholder="max" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Country</label>
+        <input id="country" type="text" placeholder="optional (e.g., US, India)" />
+      </div>
+
+      <div class="field">
+        <label>Sort</label>
+        <select id="sort">
+          <option value="newest">Newest</option>
+          <option value="oldest">Oldest</option>
+          <option value="age_desc">Age (high → low)</option>
+          <option value="age_asc">Age (low → high)</option>
+        </select>
+      </div>
+
+      <div class="field actions">
+        <button id="clearBtn" class="btn tertiary" type="button">Clear</button>
+      </div>
+    </div>
+
+    <div class="meta">
+      <div id="stats" class="stats">Loading…</div>
+      <div class="note">
+        If you’re struggling, consider reaching out to someone you trust or a professional.
+        This site isn’t therapy.
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+  <section class="dash">
+    <div class="dashTop">
+      <div class="card pad">
+        <h2 class="h2">Live Broadcast</h2>
+        <p class="muted small">
+          Auto-refreshing from form submissions. New entries pop in as they arrive.
+        </p>
+        <div id="broadcast" class="broadcast"></div>
+      </div>
+
+      <div class="card pad">
+        <h2 class="h2">Global Regret Map</h2>
+        <p class="muted small">
+          Countries are colored by the category with the most regrets coming from there.
+        </p>
+        <div id="mapWrap" class="mapWrap">
+          <svg id="worldMap" class="mapSvg" role="img" aria-label="World map"></svg>
+          <div id="mapTip" class="mapTip hidden"></div>
+        </div>
+
+        <div class="legend" id="legend"></div>
+      </div>
+    </div>
+
+    <div class="statsRow" id="miniStats"></div>
+  </section>
+
+  <section class="results">
+    <div class="resultsHeader">
+      <h2 class="h2">All Regrets</h2>
+      <p class="muted small">Search + filters below update the list instantly.</p>
+    </div>
+
+    <div id="list" class="grid"></div>
+
+    <div id="empty" class="empty hidden">
+      <h2>No matches.</h2>
+      <p>Try removing some filters or broadening your search.</p>
+    </div>
+  </section>
+</main>
+
+
+  <footer class="wrap foot">
+    <p>Built for clarity: no likes, no comments, no accounts.</p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
+<script src="app.js"></script>
+
+</body>
+</html>
