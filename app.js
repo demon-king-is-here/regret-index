@@ -3,34 +3,6 @@ const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSePrfQZy-nylSzyb4CcOv
 
 const $ = (id) => document.getElementById(id);
 
-function showToast(message, ms = 900){
-  const t = $("toast");
-  if (!t) return;
-  t.innerHTML = `<span class="spark"></span><span>${escapeHtml(message)}</span>`;
-  t.classList.remove("hidden");
-  clearTimeout(showToast._tm);
-  showToast._tm = setTimeout(() => t.classList.add("hidden"), ms);
-}
-
-function goWithToast(message, fn, delay = 650){
-  showToast(message, delay + 450);
-  setTimeout(fn, delay);
-}
-
-function showToast(message, ms = 900){
-  const t = $("toast");
-  if (!t) return;
-  t.innerHTML = `<span class="spark"></span><span>${escapeHtml(message)}</span>`;
-  t.classList.remove("hidden");
-  clearTimeout(showToast._tm);
-  showToast._tm = setTimeout(() => t.classList.add("hidden"), ms);
-}
-
-function goWithToast(message, fn, delay = 650){
-  showToast(message, delay + 450);
-  setTimeout(fn, delay);
-}
-
 function parseCSV(text) {
   const rows = [];
   let row = [], cur = "", inQuotes = false;
@@ -72,17 +44,6 @@ function buildItem(rec) {
   wrap.className = "item card";
   wrap.id = rec._id; // for shareable hash links
 
-  wrap.style.cursor = "pointer";
-wrap.addEventListener("click", (e) => {
-  // ignore clicks on buttons inside the card (copy buttons)
-  if (e.target.closest("button")) return;
-
-  goWithToast("Oof. This one hits. Taking you there…", () => {
-    location.hash = `#${rec._id}`;
-    wrap.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, 450);
-});
-  
   const meta = document.createElement("div");
   meta.className = "metaRow";
 
@@ -169,7 +130,6 @@ function formatShareText(rec){
 
 let ALL = [];
 let FILTERED = [];
-let LAST_REFRESH_MS = Date.now();
 
 const CATEGORY_COLORS = {
   "Career": "#7c3aed",
@@ -271,10 +231,7 @@ function drawMap(){
     .on("click", (event, d) => {
   const name = (d.properties?.name || "").trim();
   if (!name) return;
-
-  goWithToast(`Zooming into ${name}…`, () => {
-    setCountryFilterFromMap(name);
-  }, 450);
+  setCountryFilterFromMap(name);
 })
     .on("mousemove", (event, d) => {
       const name = (d.properties?.name || "Unknown");
@@ -430,6 +387,44 @@ function ageBand(age){
   return "60+";
 }
 
+function renderMiniStats(){
+  const total = ALL.length;
+
+  const cats = {};
+  const bands = {};
+  const countries = new Set();
+
+  for (const r of ALL){
+    const c = r.category || "Uncategorized";
+    cats[c] = (cats[c] || 0) + 1;
+
+    const b = ageBand(r.age);
+    bands[b] = (bands[b] || 0) + 1;
+
+    if (r.country) countries.add(normCountryName(r.country));
+  }
+
+  const topCat = Object.entries(cats).sort((a,b)=>b[1]-a[1])[0]?.[0] || "—";
+  const topBand = Object.entries(bands).sort((a,b)=>b[1]-a[1])[0]?.[0] || "—";
+  const nCountries = countries.size;
+
+  const el = $("miniStats");
+  el.innerHTML = "";
+
+  const items = [
+    ["Total regrets", total.toLocaleString()],
+    ["Top category", topCat],
+    ["Most common age band", topBand],
+    ["Countries", nCountries.toLocaleString()]
+  ];
+
+  for (const [k,v] of items){
+    const card = document.createElement("div");
+    card.className = "card statCard";
+    card.innerHTML = `<div class="statK">${k}</div><div class="statV">${escapeHtml(v)}</div>`;
+    el.appendChild(card);
+  }
+}
 
 function renderBroadcast(newOnes){
   const box = $("broadcast");
@@ -526,36 +521,6 @@ function renderChips(){
   });
 }
 
-function renderMoods(){
-  const el = $("moods");
-  if (!el) return;
-
-  const moods = [
-    { label: "I’m heartbroken 💔", cat: "Love", toast: "Alright… love regrets incoming 💔" },
-    { label: "I’m broke 💸",      cat: "Money", toast: "Money regrets: the loudest teacher 💸" },
-    { label: "I need motivation ⚡", cat: "Self", toast: "Self regrets. Character development mode ⚡" },
-    { label: "I’m burned out 🫠",  cat: "Health", toast: "Health regrets hit different 🫠" },
-    { label: "Family drama 🧨",   cat: "Family", toast: "Family regrets… careful 🧨" },
-    { label: "Friendship mess 😵", cat: "Friends", toast: "Friend regrets: betrayal & growth 😵" },
-    { label: "Career panic 🧑‍💻", cat: "Career", toast: "Career regrets loading… 🧑‍💻" },
-  ];
-
-  el.innerHTML = "";
-  moods.forEach(m => {
-    const b = document.createElement("button");
-    b.className = "moodBtn";
-    b.type = "button";
-    b.textContent = m.label;
-    b.addEventListener("click", () => {
-      goWithToast(m.toast, () => {
-        $("category").value = m.cat;
-        applyFilters();
-        document.querySelector(".results")?.scrollIntoView({ behavior:"smooth", block:"start" });
-      }, 450);
-    });
-    el.appendChild(b);
-  });
-}
 async function loadOnce() {
   $("submitLink").href = FORM_URL;
 
@@ -580,7 +545,6 @@ async function loadOnce() {
     .sort((a,b)=>dateValue(b.timestamp)-dateValue(a.timestamp));
 
   ALL = nextAll;
-  renderMoods();
   renderChips();
   LAST_IDS = nextIds;
 
@@ -589,10 +553,6 @@ async function loadOnce() {
   renderMiniStats();
   renderBroadcast(newOnes);
   drawMap();
-
-  LAST_REFRESH_MS = Date.now();
-const ls = $("liveStamp");
-if (ls) ls.innerHTML = `<span class="liveDot"></span>LIVE • updated just now`;
 
   // if user opened a shared link, scroll it into view once
   if (location.hash && !document.body.dataset.hashDone){
@@ -606,13 +566,6 @@ async function load() {
   if (!MAP_READY) await initMap();
 
   await loadOnce();
-
-  setInterval(() => {
-  const ls = $("liveStamp");
-  if (!ls) return;
-  const secs = Math.max(1, Math.floor((Date.now() - LAST_REFRESH_MS) / 1000));
-  ls.innerHTML = `<span class="liveDot"></span>LIVE • updated ${secs}s ago`;
-}, 1000);
 
   // refresh every 12 seconds
   setInterval(() => {
@@ -628,28 +581,6 @@ function wire() {
     $(id).addEventListener("input", applyFilters);
     $(id).addEventListener("change", applyFilters);
   });
-$("rouletteBtn")?.addEventListener("click", () => {
-  if (!ALL.length) return;
-
-  const spins = 10;
-  let i = 0;
-
-  showToast("Spinning the regret wheel…", 900);
-
-  const timer = setInterval(() => {
-    const rec = ALL[Math.floor(Math.random() * ALL.length)];
-    const list = $("list");
-    list.innerHTML = "";
-    list.appendChild(buildItem(rec));
-    $("empty").classList.add("hidden");
-    i++;
-    if (i >= spins) {
-      clearInterval(timer);
-      showToast("You got… emotional damage ✅", 1100);
-      location.hash = `#${rec._id}`;
-    }
-  }, 90);
-});
 
   $("clearBtn").addEventListener("click", () => {
     $("q").value = "";
@@ -673,19 +604,8 @@ $("rouletteBtn")?.addEventListener("click", () => {
 }
 
 wire();
-$("submitLink").addEventListener("click", (e) => {
-  e.preventDefault();
-  goWithToast("Alright… confess your villain arc 😈", () => {
-    window.open(FORM_URL, "_blank", "noreferrer");
-  });
-});
 load().catch(() => {
   $("stats").textContent = "Couldn’t load data. Check your CSV + Form URLs.";
 });
 
 window.addEventListener("resize", () => drawMap());
-
-
-
-
-
