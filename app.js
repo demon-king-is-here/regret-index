@@ -618,9 +618,16 @@ function wire() {
 }
 
 wire();
+$("submitLink").addEventListener("click", (e) => {
+  e.preventDefault();
+  goWithToast("Alright… confess your villain arc 😈", () => {
+    window.open(FORM_URL, "_blank", "noreferrer");
+  });
+});
 load().catch(() => {
   $("stats").textContent = "Couldn’t load data. Check your CSV + Form URLs.";
 });
 
 window.addEventListener("resize", () => drawMap());
+
 
