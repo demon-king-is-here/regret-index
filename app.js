@@ -573,6 +573,7 @@ async function loadOnce() {
     .sort((a,b)=>dateValue(b.timestamp)-dateValue(a.timestamp));
 
   ALL = nextAll;
+  renderMoods();
   renderChips();
   LAST_IDS = nextIds;
 
@@ -588,6 +589,37 @@ async function loadOnce() {
     const target = document.querySelector(location.hash);
     if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
   }
+}
+
+function renderMoods(){
+  const el = $("moods");
+  if (!el) return;
+
+  const moods = [
+    { label: "I’m heartbroken 💔", cat: "Love", toast: "Alright… love regrets incoming 💔" },
+    { label: "I’m broke 💸",      cat: "Money", toast: "Money regrets: the loudest teacher 💸" },
+    { label: "I need motivation ⚡", cat: "Self", toast: "Self regrets. Character development mode ⚡" },
+    { label: "I’m burned out 🫠",  cat: "Health", toast: "Health regrets hit different 🫠" },
+    { label: "Family drama 🧨",   cat: "Family", toast: "Family regrets… careful 🧨" },
+    { label: "Friendship mess 😵", cat: "Friends", toast: "Friend regrets: betrayal & growth 😵" },
+    { label: "Career panic 🧑‍💻", cat: "Career", toast: "Career regrets loading… 🧑‍💻" },
+  ];
+
+  el.innerHTML = "";
+  moods.forEach(m => {
+    const b = document.createElement("button");
+    b.className = "moodBtn";
+    b.type = "button";
+    b.textContent = m.label;
+    b.addEventListener("click", () => {
+      goWithToast(m.toast, () => {
+        $("category").value = m.cat;
+        applyFilters();
+        document.querySelector(".results")?.scrollIntoView({ behavior:"smooth", block:"start" });
+      }, 450);
+    });
+    el.appendChild(b);
+  });
 }
 
 async function load() {
@@ -643,6 +675,7 @@ load().catch(() => {
 });
 
 window.addEventListener("resize", () => drawMap());
+
 
 
 
