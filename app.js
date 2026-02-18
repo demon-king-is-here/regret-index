@@ -58,6 +58,17 @@ function buildItem(rec) {
   wrap.className = "item card";
   wrap.id = rec._id; // for shareable hash links
 
+  wrap.style.cursor = "pointer";
+wrap.addEventListener("click", (e) => {
+  // ignore clicks on buttons inside the card (copy buttons)
+  if (e.target.closest("button")) return;
+
+  goWithToast("Oof. This one hits. Taking you there…", () => {
+    location.hash = `#${rec._id}`;
+    wrap.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, 450);
+});
+  
   const meta = document.createElement("div");
   meta.className = "metaRow";
 
@@ -245,7 +256,10 @@ function drawMap(){
     .on("click", (event, d) => {
   const name = (d.properties?.name || "").trim();
   if (!name) return;
-  setCountryFilterFromMap(name);
+
+  goWithToast(`Zooming into ${name}…`, () => {
+    setCountryFilterFromMap(name);
+  }, 450);
 })
     .on("mousemove", (event, d) => {
       const name = (d.properties?.name || "Unknown");
@@ -629,5 +643,6 @@ load().catch(() => {
 });
 
 window.addEventListener("resize", () => drawMap());
+
 
 
