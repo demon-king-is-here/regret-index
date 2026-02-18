@@ -3,6 +3,20 @@ const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSePrfQZy-nylSzyb4CcOv
 
 const $ = (id) => document.getElementById(id);
 
+function showToast(message, ms = 900){
+  const t = $("toast");
+  if (!t) return;
+  t.innerHTML = `<span class="spark"></span><span>${escapeHtml(message)}</span>`;
+  t.classList.remove("hidden");
+  clearTimeout(showToast._tm);
+  showToast._tm = setTimeout(() => t.classList.add("hidden"), ms);
+}
+
+function goWithToast(message, fn, delay = 650){
+  showToast(message, delay + 450);
+  setTimeout(fn, delay);
+}
+
 function parseCSV(text) {
   const rows = [];
   let row = [], cur = "", inQuotes = false;
@@ -609,3 +623,4 @@ load().catch(() => {
 });
 
 window.addEventListener("resize", () => drawMap());
+
