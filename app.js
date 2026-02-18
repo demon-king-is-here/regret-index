@@ -430,44 +430,6 @@ function ageBand(age){
   return "60+";
 }
 
-function renderMiniStats()
-
-for (const [k,v] of items){
-  const card = document.createElement("button");
-  card.type = "button";
-  card.className = "card statCard";
-  card.style.cursor = "pointer";
-  card.style.textAlign = "left";
-
-  card.innerHTML = `<div class="statK">${escapeHtml(k)}</div><div class="statV">${escapeHtml(v)}</div>`;
-
-  card.addEventListener("click", () => {
-    if (k === "Top category" && v && v !== "—") {
-      goWithToast(`Showing ${v} regrets…`, () => {
-        $("category").value = v;
-        applyFilters();
-        document.querySelector(".results")?.scrollIntoView({ behavior:"smooth", block:"start" });
-      }, 450);
-    }
-
-    if (k === "Most common age band" && v && v !== "—") {
-      goWithToast(`Filtering to age band: ${v}…`, () => {
-        // set age range based on band
-        const map = { "<20":[0,19], "20s":[20,29], "30s":[30,39], "40s":[40,49], "50s":[50,59], "60+":[60,120] };
-        const r = map[v];
-        if (r) { $("ageMin").value = r[0]; $("ageMax").value = r[1]; }
-        applyFilters();
-        document.querySelector(".results")?.scrollIntoView({ behavior:"smooth", block:"start" });
-      }, 450);
-    }
-
-    if (k === "Countries") {
-      goWithToast("Try clicking a country on the map 👀", () => {}, 450);
-    }
-  });
-
-  el.appendChild(card);
-}
 
 function renderBroadcast(newOnes){
   const box = $("broadcast");
@@ -722,7 +684,6 @@ load().catch(() => {
 });
 
 window.addEventListener("resize", () => drawMap());
-
 
 
 
