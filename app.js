@@ -714,6 +714,25 @@ wire();
 load().catch(() => {
   $("stats").textContent = "Couldn’t load data. Check your CSV + Form URLs.";
 });
+function loadTopStats(){
+  const container = document.getElementById("topStats");
+  if (!container) return;
+
+  db.collection("regrets")
+    .orderBy("likes", "desc")
+    .limit(3)
+    .get()
+    .then(snapshot => {
+      let html = "<h3>🔥 Most Liked</h3>";
+      snapshot.forEach(doc => {
+        html += `<div class="topItem">❤️ ${doc.data().likes || 0}</div>`;
+      });
+      container.innerHTML = html;
+    });
+}
+
+setTimeout(loadTopStats, 3000);
 
 window.addEventListener("resize", () => drawMap());
+
 
