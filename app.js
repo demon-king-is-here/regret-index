@@ -415,43 +415,43 @@ function ageBand(age){
   return "60+";
 }
 
-function renderMiniStats(){
-  const total = ALL.length;
+function renderMiniStats()
 
-  const cats = {};
-  const bands = {};
-  const countries = new Set();
+for (const [k,v] of items){
+  const card = document.createElement("button");
+  card.type = "button";
+  card.className = "card statCard";
+  card.style.cursor = "pointer";
+  card.style.textAlign = "left";
 
-  for (const r of ALL){
-    const c = r.category || "Uncategorized";
-    cats[c] = (cats[c] || 0) + 1;
+  card.innerHTML = `<div class="statK">${escapeHtml(k)}</div><div class="statV">${escapeHtml(v)}</div>`;
 
-    const b = ageBand(r.age);
-    bands[b] = (bands[b] || 0) + 1;
+  card.addEventListener("click", () => {
+    if (k === "Top category" && v && v !== "—") {
+      goWithToast(`Showing ${v} regrets…`, () => {
+        $("category").value = v;
+        applyFilters();
+        document.querySelector(".results")?.scrollIntoView({ behavior:"smooth", block:"start" });
+      }, 450);
+    }
 
-    if (r.country) countries.add(normCountryName(r.country));
-  }
+    if (k === "Most common age band" && v && v !== "—") {
+      goWithToast(`Filtering to age band: ${v}…`, () => {
+        // set age range based on band
+        const map = { "<20":[0,19], "20s":[20,29], "30s":[30,39], "40s":[40,49], "50s":[50,59], "60+":[60,120] };
+        const r = map[v];
+        if (r) { $("ageMin").value = r[0]; $("ageMax").value = r[1]; }
+        applyFilters();
+        document.querySelector(".results")?.scrollIntoView({ behavior:"smooth", block:"start" });
+      }, 450);
+    }
 
-  const topCat = Object.entries(cats).sort((a,b)=>b[1]-a[1])[0]?.[0] || "—";
-  const topBand = Object.entries(bands).sort((a,b)=>b[1]-a[1])[0]?.[0] || "—";
-  const nCountries = countries.size;
+    if (k === "Countries") {
+      goWithToast("Try clicking a country on the map 👀", () => {}, 450);
+    }
+  });
 
-  const el = $("miniStats");
-  el.innerHTML = "";
-
-  const items = [
-    ["Total regrets", total.toLocaleString()],
-    ["Top category", topCat],
-    ["Most common age band", topBand],
-    ["Countries", nCountries.toLocaleString()]
-  ];
-
-  for (const [k,v] of items){
-    const card = document.createElement("div");
-    card.className = "card statCard";
-    card.innerHTML = `<div class="statK">${k}</div><div class="statV">${escapeHtml(v)}</div>`;
-    el.appendChild(card);
-  }
+  el.appendChild(card);
 }
 
 function renderBroadcast(newOnes){
@@ -641,6 +641,28 @@ function wire() {
     $(id).addEventListener("input", applyFilters);
     $(id).addEventListener("change", applyFilters);
   });
+$("rouletteBtn")?.addEventListener("click", () => {
+  if (!ALL.length) return;
+
+  const spins = 10;
+  let i = 0;
+
+  showToast("Spinning the regret wheel…", 900);
+
+  const timer = setInterval(() => {
+    const rec = ALL[Math.floor(Math.random() * ALL.length)];
+    const list = $("list");
+    list.innerHTML = "";
+    list.appendChild(buildItem(rec));
+    $("empty").classList.add("hidden");
+    i++;
+    if (i >= spins) {
+      clearInterval(timer);
+      showToast("You got… emotional damage ✅", 1100);
+      location.hash = `#${rec._id}`;
+    }
+  }, 90);
+});
 
   $("clearBtn").addEventListener("click", () => {
     $("q").value = "";
@@ -675,6 +697,7 @@ load().catch(() => {
 });
 
 window.addEventListener("resize", () => drawMap());
+
 
 
 
