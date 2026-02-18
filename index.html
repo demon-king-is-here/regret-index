@@ -1,11 +1,9 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <div class="moods" id="moods"></div>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Regret Index</title>
-  <div id="liveStamp" class="liveStamp">LIVE • connecting…</div>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -13,8 +11,6 @@
   <div class="blob"></div>
   <div class="blob b2"></div>
   <div class="blob b3"></div>
-  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
-
 </div>
   <header class="wrap">
     <div class="top">
@@ -25,7 +21,7 @@
       </div>
       <div class="cta">
         <a id="submitLink" class="btn" href="#" target="_blank" rel="noreferrer">Submit a regret</a>
-        <button id="rouletteBtn" class="btn secondary" type="button">🎰 Regret Roulette</button>
+        <button id="randomBtn" class="btn secondary" type="button">Random</button>
       </div>
     </div>
 
@@ -135,16 +131,9 @@
     <p>Built for clarity: no likes, no comments, no accounts.</p>
   </footer>
 
-  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
-
   <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
 <script src="app.js"></script>
 
 </body>
 </html>
-
-
-
-
-
