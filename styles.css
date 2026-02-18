@@ -351,4 +351,21 @@ h1{ margin:0; font-size:34px; letter-spacing:-.02em; }
 .toast.hidden{ display:none; }
 .toast .spark{ width:10px; height:10px; border-radius:4px; background: rgba(124,58,237,.75); }
 
+.moods{
+  margin-top: 12px;
+  display:flex; flex-wrap:wrap; gap:10px;
+}
+.moodBtn{
+  border:1px solid var(--border);
+  background: rgba(255,255,255,.06);
+  color: var(--text);
+  border-radius: 14px;
+  padding: 10px 12px;
+  cursor:pointer;
+  font-size: 12px;
+  transition: transform .12s ease, background .12s ease, border-color .12s ease;
+}
+.moodBtn:hover{ transform: translateY(-1px); background: rgba(255,255,255,.10); border-color: rgba(255,255,255,.22); }
+
+
 
