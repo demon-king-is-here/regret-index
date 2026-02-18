@@ -1,6 +1,26 @@
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTGmaTPdReMCx5yseoJVANx2zUwILfk9eQ9rG8IEqIOv-CHGtP_iRxeOCnOf7pYZzN2RV1dq4CPXiiG/pub?gid=813074154&single=true&output=csv";
 const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSePrfQZy-nylSzyb4CcOv2R-5eYdABNdOkDkeEd2E9f-dr16Q/viewform"
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
 
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyCMNPUwMaKYx-2yePgZYbaOoomOgPzvQIE",
+  authDomain: "regret-index.firebaseapp.com",
+  projectId: "regret-index",
+  storageBucket: "regret-index.firebasestorage.app",
+  messagingSenderId: "1045622308120",
+  appId: "1:1045622308120:web:df0f58cf21fe942a2a726d",
+  measurementId: "G-873EDCLNQN"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 const $ = (id) => document.getElementById(id);
 
 function parseCSV(text) {
@@ -114,6 +134,93 @@ function buildItem(rec) {
 
   shareRow.append(copyTextBtn, copyLinkBtn);
   wrap.appendChild(shareRow);
+
+  // --- LIKE + COMMENT SECTION ---
+const social = document.createElement("div");
+social.className = "socialBlock";
+
+// Like Button
+const likeBtn = document.createElement("button");
+likeBtn.className = "likeBtn";
+likeBtn.textContent = "❤️ 0";
+
+social.appendChild(likeBtn);
+
+// Comment Toggle
+const commentToggle = document.createElement("button");
+commentToggle.className = "commentToggle";
+commentToggle.textContent = "💬 Comment";
+social.appendChild(commentToggle);
+
+// Comment Box
+const commentBox = document.createElement("div");
+commentBox.className = "commentBox hidden";
+
+commentBox.innerHTML = `
+  <input type="text" placeholder="Write something..." class="commentInput"/>
+  <button class="postComment">Post</button>
+  <div class="commentList"></div>
+`;
+
+social.appendChild(commentBox);
+wrap.appendChild(social);
+
+// Firestore Reference
+const docRef = db.collection("regrets").doc(rec._id);
+
+// Load likes in realtime
+docRef.onSnapshot((doc) => {
+  const data = doc.data() || {};
+  const likes = data.likes || 0;
+  likeBtn.textContent = "❤️ " + likes;
+});
+
+// Like action
+likeBtn.addEventListener("click", async () => {
+  await docRef.set(
+    { likes: firebase.firestore.FieldValue.increment(1) },
+    { merge: true }
+  );
+});
+
+// Toggle comments
+commentToggle.addEventListener("click", () => {
+  commentBox.classList.toggle("hidden");
+});
+
+// Post comment
+commentBox.querySelector(".postComment").addEventListener("click", async () => {
+  const input = commentBox.querySelector(".commentInput");
+  const text = input.value.trim();
+  if (!text) return;
+
+  await docRef.collection("comments").add({
+    text: text,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+
+  await docRef.set(
+    { commentCount: firebase.firestore.FieldValue.increment(1) },
+    { merge: true }
+  );
+
+  input.value = "";
+});
+
+// Load comments live
+docRef.collection("comments")
+  .orderBy("createdAt", "desc")
+  .limit(5)
+  .onSnapshot((snap) => {
+    const list = commentBox.querySelector(".commentList");
+    list.innerHTML = "";
+    snap.forEach((doc) => {
+      const c = document.createElement("div");
+      c.className = "commentItem";
+      c.textContent = doc.data().text;
+      list.appendChild(c);
+    });
+  });
 
   return wrap;
 }
@@ -609,3 +716,4 @@ load().catch(() => {
 });
 
 window.addEventListener("resize", () => drawMap());
+
