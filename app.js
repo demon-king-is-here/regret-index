@@ -17,6 +17,20 @@ function goWithToast(message, fn, delay = 650){
   setTimeout(fn, delay);
 }
 
+function showToast(message, ms = 900){
+  const t = $("toast");
+  if (!t) return;
+  t.innerHTML = `<span class="spark"></span><span>${escapeHtml(message)}</span>`;
+  t.classList.remove("hidden");
+  clearTimeout(showToast._tm);
+  showToast._tm = setTimeout(() => t.classList.add("hidden"), ms);
+}
+
+function goWithToast(message, fn, delay = 650){
+  showToast(message, delay + 450);
+  setTimeout(fn, delay);
+}
+
 function parseCSV(text) {
   const rows = [];
   let row = [], cur = "", inQuotes = false;
@@ -155,6 +169,7 @@ function formatShareText(rec){
 
 let ALL = [];
 let FILTERED = [];
+let LAST_REFRESH_MS = Date.now();
 
 const CATEGORY_COLORS = {
   "Career": "#7c3aed",
@@ -549,6 +564,36 @@ function renderChips(){
   });
 }
 
+function renderMoods(){
+  const el = $("moods");
+  if (!el) return;
+
+  const moods = [
+    { label: "I’m heartbroken 💔", cat: "Love", toast: "Alright… love regrets incoming 💔" },
+    { label: "I’m broke 💸",      cat: "Money", toast: "Money regrets: the loudest teacher 💸" },
+    { label: "I need motivation ⚡", cat: "Self", toast: "Self regrets. Character development mode ⚡" },
+    { label: "I’m burned out 🫠",  cat: "Health", toast: "Health regrets hit different 🫠" },
+    { label: "Family drama 🧨",   cat: "Family", toast: "Family regrets… careful 🧨" },
+    { label: "Friendship mess 😵", cat: "Friends", toast: "Friend regrets: betrayal & growth 😵" },
+    { label: "Career panic 🧑‍💻", cat: "Career", toast: "Career regrets loading… 🧑‍💻" },
+  ];
+
+  el.innerHTML = "";
+  moods.forEach(m => {
+    const b = document.createElement("button");
+    b.className = "moodBtn";
+    b.type = "button";
+    b.textContent = m.label;
+    b.addEventListener("click", () => {
+      goWithToast(m.toast, () => {
+        $("category").value = m.cat;
+        applyFilters();
+        document.querySelector(".results")?.scrollIntoView({ behavior:"smooth", block:"start" });
+      }, 450);
+    });
+    el.appendChild(b);
+  });
+}
 async function loadOnce() {
   $("submitLink").href = FORM_URL;
 
@@ -583,6 +628,10 @@ async function loadOnce() {
   renderBroadcast(newOnes);
   drawMap();
 
+  LAST_REFRESH_MS = Date.now();
+const ls = $("liveStamp");
+if (ls) ls.innerHTML = `<span class="liveDot"></span>LIVE • updated just now`;
+
   // if user opened a shared link, scroll it into view once
   if (location.hash && !document.body.dataset.hashDone){
     document.body.dataset.hashDone = "1";
@@ -591,41 +640,17 @@ async function loadOnce() {
   }
 }
 
-function renderMoods(){
-  const el = $("moods");
-  if (!el) return;
-
-  const moods = [
-    { label: "I’m heartbroken 💔", cat: "Love", toast: "Alright… love regrets incoming 💔" },
-    { label: "I’m broke 💸",      cat: "Money", toast: "Money regrets: the loudest teacher 💸" },
-    { label: "I need motivation ⚡", cat: "Self", toast: "Self regrets. Character development mode ⚡" },
-    { label: "I’m burned out 🫠",  cat: "Health", toast: "Health regrets hit different 🫠" },
-    { label: "Family drama 🧨",   cat: "Family", toast: "Family regrets… careful 🧨" },
-    { label: "Friendship mess 😵", cat: "Friends", toast: "Friend regrets: betrayal & growth 😵" },
-    { label: "Career panic 🧑‍💻", cat: "Career", toast: "Career regrets loading… 🧑‍💻" },
-  ];
-
-  el.innerHTML = "";
-  moods.forEach(m => {
-    const b = document.createElement("button");
-    b.className = "moodBtn";
-    b.type = "button";
-    b.textContent = m.label;
-    b.addEventListener("click", () => {
-      goWithToast(m.toast, () => {
-        $("category").value = m.cat;
-        applyFilters();
-        document.querySelector(".results")?.scrollIntoView({ behavior:"smooth", block:"start" });
-      }, 450);
-    });
-    el.appendChild(b);
-  });
-}
-
 async function load() {
   if (!MAP_READY) await initMap();
 
   await loadOnce();
+
+  setInterval(() => {
+  const ls = $("liveStamp");
+  if (!ls) return;
+  const secs = Math.max(1, Math.floor((Date.now() - LAST_REFRESH_MS) / 1000));
+  ls.innerHTML = `<span class="liveDot"></span>LIVE • updated ${secs}s ago`;
+}, 1000);
 
   // refresh every 12 seconds
   setInterval(() => {
@@ -697,6 +722,7 @@ load().catch(() => {
 });
 
 window.addEventListener("resize", () => drawMap());
+
 
 
 
